@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>易經納甲裝卦系統 — 唯心聖教・鬼谷子心法六爻排盤</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Google Fonts 楷體/宋體與無襯線字體 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        paper: '#F7F3EA',        // 古典米白宣紙底色
+                        paperBoard: '#FBF8F1',   // 卦盤純淨宣紙色
+                        paperDark: '#EDE6D6',    // 深宣紙層次
+                        paperCard: '#FCF9F2',    // 卡片淺宣紙
+                        ink: '#1F1C18',          // 濃墨黑
+                        inkLight: '#5E574E',     // 淡墨灰
+                        cinnabar: '#B8332A',     // 硃砂紅（動爻、世爻、空亡）
+                        cinnabarSoft: '#F6E5E3', // 淡硃砂底
+                        indigo: '#2B547E',       // 靛青藍（應爻）
+                        indigoSoft: '#E6EEF5',   // 淡靛青底
+                        bamboo: '#D8D0C0',       // 淡雅竹青框線
+                        gold: '#9C7344',         // 古銅金點綴
+                        jade: '#2C6958',         // 伏神青玉綠
+                    },
+                    fontFamily: {
+                        serif: ['"Noto Serif TC"', 'Kaiti', 'DFKai-SB', 'BiauKai', 'serif'],
+                        sans: ['"Noto Sans TC"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+            background-color: #F7F3EA;
+            color: #1F1C18;
+            font-family: 'Noto Sans TC', sans-serif;
+            background-image: 
+                radial-gradient(rgba(156, 115, 68, 0.08) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.35), rgba(237, 230, 214, 0.35));
+            background-size: 22px 22px, 100% 100%;
+        }
+
+        /* 書院宣紙質感畫布 */
+        .rice-paper-board {
+            background-color: #FBF8F1;
+            background-image: 
+                radial-gradient(rgba(31, 28, 24, 0.035) 1px, transparent 0),
+                radial-gradient(rgba(184, 51, 42, 0.025) 1px, transparent 0);
+            background-size: 16px 16px;
+            background-position: 0 0, 8px 8px;
+            box-shadow: 
+                0 10px 28px -6px rgba(31, 28, 24, 0.09),
+                inset 0 0 36px rgba(216, 208, 192, 0.38);
+        }
+
+        /* 直排書法文字樣式 */
+        .vertical-rl {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            letter-spacing: 0.14em;
+        }
+
+        .font-calligraphy {
+            font-family: 'Noto Serif TC', 'Kaiti', 'DFKai-SB', 'BiauKai', serif;
+        }
+
+        /* 硃砂印章邊框效果 */
+        .seal-border {
+            border: 1.5px solid #B8332A;
+            box-shadow: inset 0 0 0 1px rgba(184, 51, 42, 0.25);
+        }
+
+        /* 零橫向溢出之多斷點 RWD 六爻網格（手機 360px ~ 桌面 1280px 皆均衡不重疊） */
+        .yao-board-grid {
+            display: grid;
+            grid-template-columns: minmax(34px, 44px) minmax(20px, 26px) minmax(50px, 64px) minmax(72px, 118px) minmax(24px, 34px);
+            align-items: center;
+            width: 100%;
+            gap: 2px;
+        }
+
+        @media (min-width: 400px) {
+            .yao-board-grid {
+                grid-template-columns: minmax(40px, 52px) minmax(22px, 28px) minmax(56px, 72px) minmax(84px, 134px) minmax(26px, 38px);
+                gap: 4px;
+            }
+        }
+
+        @media (min-width: 640px) {
+            .yao-board-grid {
+                grid-template-columns: minmax(48px, 62px) minmax(26px, 34px) minmax(68px, 86px) minmax(105px, 155px) minmax(32px, 46px);
+                gap: 6px;
+            }
+        }
+
+        /* 自適應書法字級（針對窄螢幕手機直立優化） */
+        .board-text-main {
+            font-size: clamp(0.82rem, 3.1vw, 1.125rem);
+        }
+        .board-text-sub {
+            font-size: clamp(0.65rem, 2.4vw, 0.85rem);
+        }
+        .board-vertical-topic-size {
+            font-size: clamp(0.95rem, 3.5vw, 1.4rem);
+        }
+        .board-vertical-gz-size {
+            font-size: clamp(0.84rem, 3.0vw, 1.15rem);
+        }
+
+        /* 自訂捲軸 */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #EDE6D6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #C4B9A5;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-cinnabar selection:text-white">
+
+    <!-- 頂部書院導覽列 -->
+    <header class="w-full border-b border-bamboo bg-[#F7F3EA]/95 backdrop-blur-sm sticky top-0 z-30">
+        <div class="max-w-7xl w-full mx-auto px-3 sm:px-5 py-2.5 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-cinnabar text-[#F7F3EA] flex items-center justify-center font-calligraphy font-black text-lg sm:text-xl shadow-xs select-none seal-border shrink-0">
+                    易
+                </div>
+                <div>
+                    <h1 class="font-calligraphy text-base sm:text-xl font-bold tracking-wider text-ink leading-tight">
+                        易經納甲裝卦系統
+                    </h1>
+                    <p class="text-[10px] sm:text-xs text-inkLight tracking-widest">唯心聖教・鬼谷子心法六爻排盤</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-1.5 sm:gap-2">
+                <button onclick="loadSampleCase()" class="px-2.5 sm:px-3 py-1.5 text-xs font-medium rounded-xl border border-cinnabar/40 bg-cinnabarSoft/80 hover:bg-cinnabarSoft text-cinnabar transition flex items-center gap-1 active:scale-95">
+                    <span>📜</span>
+                    <span>範例：天澤履</span>
+                </button>
+                <button onclick="toggleFormulaModal()" class="px-2.5 sm:px-3 py-1.5 text-xs font-medium rounded-xl border border-bamboo bg-paperCard hover:bg-paperDark text-ink transition flex items-center gap-1 active:scale-95">
+                    <span>📖</span>
+                    <span>口訣速查</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主體響應式雙欄版面（全頁自適應，零橫向捲動） -->
+    <main class="max-w-7xl w-full mx-auto px-2.5 sm:px-5 py-4 flex-grow">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start w-full">
+
+            <!-- ================= 左側控制與「模式B：選上下卦＋動爻」輸入欄 (5 cols) ================= -->
+            <div class="lg:col-span-5 space-y-3.5 w-full">
+
+                <!-- 卡片一：占問事項與四柱干支旬空 -->
+                <section class="bg-paperCard border border-bamboo rounded-2xl p-3.5 sm:p-4 shadow-2xs w-full">
+                    <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-bamboo/70">
+                        <div class="flex items-center gap-2">
+                            <span class="w-1.5 h-4 bg-cinnabar rounded-full"></span>
+                            <h2 class="font-calligraphy font-bold text-sm sm:text-base text-ink">一、占問事由與干支旬空</h2>
+                        </div>
+                        <button onclick="setNowTime()" class="px-2.5 py-1 text-xs rounded-lg bg-paperDark hover:bg-bamboo/60 text-ink font-medium border border-bamboo transition active:scale-95">
+                            ⟳ 重設為今日此刻
+                        </button>
+                    </div>
+
+                    <!-- 占卜事項與日期時間 -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-2.5">
+                        <div>
+                            <label class="block text-[11px] font-medium text-inkLight mb-1">占問事項（直排書寫於右側）</label>
+                            <input type="text" id="input-topic" value="占問前程運勢" placeholder="請輸入占卜事項..." oninput="renderBoard()"
+                                class="w-full px-3 py-1.5 text-sm rounded-xl border border-bamboo bg-paper/70 focus:outline-none focus:border-cinnabar font-calligraphy tracking-wider">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-medium text-inkLight mb-1">占問西元日期時間</label>
+                            <input type="datetime-local" id="input-datetime" onchange="onDateTimeChange()"
+                                class="w-full px-2.5 py-1.5 text-xs sm:text-sm rounded-xl border border-bamboo bg-paper/70 focus:outline-none focus:border-cinnabar">
+                        </div>
+                    </div>
+
+                    <!-- 干支自動帶出與獨立微調區 -->
+                    <div class="bg-paperDark/65 rounded-xl p-2.5 border border-bamboo/80 space-y-2">
+                        <div class="grid grid-cols-3 gap-1.5 text-center">
+                            <div class="bg-paperCard rounded-lg p-1.5 border border-bamboo/70">
+                                <div class="text-[10px] text-inkLight">年干支</div>
+                                <div id="disp-year-gz" class="font-calligraphy font-bold text-xs sm:text-sm text-ink mt-0.5">--</div>
+                            </div>
+                            <div class="bg-paperCard rounded-lg p-1.5 border border-bamboo/70">
+                                <div class="text-[10px] text-inkLight">月建（微調）</div>
+                                <div class="flex items-center justify-center gap-0.5 mt-0.5">
+                                    <span id="disp-month-stem" class="font-calligraphy font-bold text-xs sm:text-sm text-ink">--</span>
+                                    <select id="select-month-branch" onchange="onManualBranchChange()" aria-label="月建地支"
+                                        class="bg-transparent font-calligraphy font-bold text-xs sm:text-sm text-ink focus:outline-none cursor-pointer underline decoration-dotted decoration-gold">
+                                    </select>
+                                    <span class="text-[11px] text-inkLight">月</span>
+                                </div>
+                            </div>
+                            <div class="bg-cinnabarSoft/85 rounded-lg p-1.5 border border-cinnabar/35">
+                                <div class="text-[10px] font-bold text-cinnabar">旬空（空亡）</div>
+                                <div id="disp-void" class="font-calligraphy font-bold text-xs sm:text-sm text-cinnabar mt-0.5">-- 空</div>
+                            </div>
+                        </div>
+
+                        <!-- 日干支獨立微調 -->
+                        <div class="bg-paperCard rounded-lg px-2.5 py-1.5 border border-gold/40 flex items-center justify-between gap-2">
+                            <div>
+                                <div class="text-[11px] font-bold text-gold">日辰（定六獸・定空亡）</div>
+                                <div id="disp-beast-rule" class="text-[10px] text-inkLight">庚辛日起白虎</div>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <select id="select-day-stem" onchange="onManualDayChange()" aria-label="日干"
+                                    class="px-2 py-1 rounded-lg bg-paper border border-bamboo font-calligraphy font-bold text-sm sm:text-base text-cinnabar focus:outline-none focus:border-cinnabar">
+                                </select>
+                                <select id="select-day-branch" onchange="onManualDayChange()" aria-label="日支"
+                                    class="px-2 py-1 rounded-lg bg-paper border border-bamboo font-calligraphy font-bold text-sm sm:text-base text-ink focus:outline-none focus:border-cinnabar">
+                                </select>
+                                <span class="text-xs font-bold text-inkLight">日</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 卡片二：預設「模式 B（選上下卦＋動爻）」主輸入面板 -->
+                <section class="bg-paperCard border border-bamboo rounded-2xl p-3.5 sm:p-4 shadow-2xs w-full space-y-3">
+                    <div class="flex items-center justify-between pb-2 border-b border-bamboo/70">
+                        <div class="flex items-center gap-2">
+                            <span class="w-1.5 h-4 bg-cinnabar rounded-full"></span>
+                            <h2 class="font-calligraphy font-bold text-sm sm:text-base text-ink">二、選上下卦與動爻（模式 B）</h2>
+                        </div>
+                        <button onclick="clearAllMoving()" class="px-2 py-0.5 text-[11px] rounded-lg border border-bamboo bg-paper hover:bg-paperDark text-cinnabar font-medium transition">
+                            清除全部動爻
+                        </button>
+                    </div>
+
+                    <!-- 上下經卦選擇區 -->
+                    <div class="grid grid-cols-2 gap-2.5 bg-paper p-2.5 rounded-xl border border-bamboo/80">
+                        <div>
+                            <label for="select-upper-gua" class="block text-[11px] font-bold text-ink mb-1">上卦（外卦：四五上爻）</label>
+                            <select id="select-upper-gua" onchange="applyUpperLowerGua()"
+                                class="w-full px-2 py-2 rounded-xl border border-bamboo bg-paperCard font-calligraphy font-bold text-xs sm:text-sm text-ink focus:outline-none focus:border-cinnabar">
+                            </select>
+                        </div>
+                        <div>
+                            <label for="select-lower-gua" class="block text-[11px] font-bold text-ink mb-1">下卦（內卦：初二三爻）</label>
+                            <select id="select-lower-gua" onchange="applyUpperLowerGua()"
+                                class="w-full px-2 py-2 rounded-xl border border-bamboo bg-paperCard font-calligraphy font-bold text-xs sm:text-sm text-ink focus:outline-none focus:border-cinnabar">
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 六爻互動動靜切換列表（由上爻至初爻排列，點擊即可切換該爻是否發動，亦可切換陰陽） -->
+                    <div class="bg-paper p-2.5 rounded-xl border border-bamboo/80 space-y-1.5">
+                        <div class="flex items-center justify-between px-1 mb-1">
+                            <span class="text-[11px] font-bold text-ink">六爻動靜設定（點擊右側切換「靜爻 / 動爻○✕」）</span>
+                            <span class="text-[10px] text-inkLight">點爻象可微調陰陽</span>
+                        </div>
+                        <div id="interactive-yao-controls" class="space-y-1.5">
+                            <!-- 由 JS 動態生成上爻至初爻控制列 -->
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ================= 右側傳統書院直式手寫宣紙卦盤區 (7 cols) ================= -->
+            <div class="lg:col-span-7 space-y-3 w-full">
+                
+                <!-- 卦盤上方控制工具列 -->
+                <div class="bg-paperCard border border-bamboo rounded-2xl px-3 py-2 flex flex-wrap items-center justify-between gap-2 shadow-2xs w-full">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        <!-- 切換顯示「完整天干地支五行」或「手寫簡盤（僅地支）」 -->
+                        <button onclick="toggleStemDisplay()" class="px-2.5 py-1 text-[11px] sm:text-xs font-bold rounded-xl border border-indigo/40 bg-indigoSoft/80 text-indigo hover:bg-indigoSoft transition flex items-center gap-1">
+                            <span>🈳</span>
+                            <span id="toggle-stem-label">納甲：干支五行</span>
+                        </button>
+                        <!-- 切換六獸簡稱/全稱 -->
+                        <button onclick="toggleBeastFull()" class="px-2.5 py-1 text-[11px] sm:text-xs font-medium rounded-xl border border-bamboo bg-paper hover:bg-paperDark text-ink transition">
+                            <span id="toggle-beast-label">六獸：簡稱</span>
+                        </button>
+                        <!-- 切換是否顯示變爻細目 -->
+                        <button onclick="toggleChangedDetail()" class="px-2.5 py-1 text-[11px] sm:text-xs font-medium rounded-xl border border-bamboo bg-paper hover:bg-paperDark text-ink transition">
+                            <span id="toggle-changed-label">變爻細目：顯示</span>
+                        </button>
+                    </div>
+
+                    <button onclick="copyPlainTextBoard()" class="px-3 py-1.5 rounded-xl bg-cinnabar hover:bg-[#9C2820] text-paper text-[11px] sm:text-xs font-bold shadow-2xs transition flex items-center gap-1 active:scale-95">
+                        <span>📋</span>
+                        <span>複製排盤</span>
+                    </button>
+                </div>
+
+                <!-- 宣紙手寫直式卦盤主畫布（100% 單頁自適應，絕無橫向捲軸） -->
+                <div class="rice-paper-board border-2 border-bamboo rounded-2xl p-3 sm:p-6 relative w-full">
+                    <!-- 角落書院裝飾內框線 -->
+                    <div class="pointer-events-none absolute inset-2 border border-bamboo/60 rounded-xl"></div>
+
+                    <div class="relative z-10 w-full flex flex-col justify-between">
+                        
+                        <!-- 上半部：左側六爻主盤 ＋ 右側直排月日空亡與占卜事項 -->
+                        <div class="flex items-stretch justify-between gap-1 sm:gap-3 pt-1 pb-3 w-full">
+                            
+                            <!-- 中央六爻手寫主盤（緊湊零溢出 RWD 網格） -->
+                            <div class="flex-grow min-w-0 flex flex-col justify-center">
+                                <!-- 表頭微標提示 -->
+                                <div class="yao-board-grid text-[9px] sm:text-[10px] text-inkLight/85 pb-1.5 mb-1 border-b border-dashed border-bamboo text-center select-none">
+                                    <div>伏神</div>
+                                    <div>六親</div>
+                                    <div>納甲干支</div>
+                                    <div>爻象（世／應）</div>
+                                    <div>六獸</div>
+                                </div>
+
+                                <!-- 六爻列容器（由上爻至初爻） -->
+                                <div id="calligraphy-board-rows" class="space-y-1 sm:space-y-1.5 w-full">
+                                    <!-- 由 JS 動態生成 -->
+                                </div>
+                            </div>
+
+                            <!-- 右側直排文字區（左欄：直排日期＋正下方直式空亡；右欄：直排占卜事項，徹底不遮擋六獸） -->
+                            <div class="flex items-start justify-end gap-1 sm:gap-2.5 pl-1.5 sm:pl-3 border-l border-bamboo/80 shrink-0 pt-1 select-none">
+                                <!-- 直排月建日辰 ＋ 正下方直式空亡（同一垂直欄內） -->
+                                <div class="flex flex-col items-center justify-start gap-2">
+                                    <div id="board-vertical-gz" class="vertical-rl font-calligraphy font-bold board-vertical-gz-size text-ink leading-tight">
+                                        己亥月 庚寅日
+                                    </div>
+                                    <div id="board-vertical-void" class="vertical-rl px-1 py-1.5 rounded-lg bg-cinnabarSoft/90 border border-cinnabar/45 text-cinnabar font-calligraphy font-bold text-[11px] sm:text-xs leading-tight">
+                                        空亡：午未
+                                    </div>
+                                </div>
+
+                                <!-- 最右側直排占卜事項 -->
+                                <div class="flex flex-col items-center justify-start">
+                                    <div id="board-vertical-topic" class="vertical-rl font-calligraphy font-black board-vertical-topic-size text-ink max-h-[240px] sm:max-h-[290px] leading-tight">
+                                        江俊達運勢
+                                    </div>
+                                    <div class="mt-2 w-4 h-4 sm:w-5 sm:h-5 rounded-xs border border-cinnabar text-cinnabar font-calligraphy text-[9px] sm:text-[10px] flex items-center justify-center font-bold opacity-85">
+                                        占
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 盤面下方：置中本卦名與之卦（變卦）名（還原附圖下方手寫標題） -->
+                        <div class="mt-1 pt-3 border-t border-bamboo/80 flex flex-col items-center justify-center text-center w-full">
+                            <div class="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+                                <span id="board-main-hex-name" class="font-calligraphy font-black text-xl sm:text-3xl text-ink tracking-[0.14em]">
+                                    天澤履
+                                </span>
+                                <span id="board-palace-badge" class="px-2 py-0.5 rounded-full bg-paperDark border border-bamboo text-[11px] sm:text-xs font-calligraphy font-bold text-inkLight">
+                                    艮宮屬土・五世卦
+                                </span>
+                            </div>
+
+                            <!-- 變卦列（有動爻時顯示 ↳ 變卦名） -->
+                            <div id="board-changed-hex-wrap" class="mt-1.5 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-cinnabar">
+                                <span class="font-calligraphy font-bold text-lg sm:text-2xl">↳</span>
+                                <span id="board-changed-hex-name" class="font-calligraphy font-black text-lg sm:text-2xl tracking-[0.12em]">
+                                    天雷无妄
+                                </span>
+                                <span id="board-changed-palace-badge" class="px-2 py-0.5 rounded-full bg-cinnabarSoft border border-cinnabar/30 text-[10px] sm:text-[11px] font-calligraphy font-bold text-cinnabar">
+                                    巽宮・四世
+                                </span>
+                            </div>
+
+                            <!-- 動變細目摘要條（有動爻且開啟細目時顯示於下方，避免擠壓橫向寬度） -->
+                            <div id="board-changed-lines-strip" class="mt-2.5 flex flex-wrap items-center justify-center gap-1.5">
+                                <!-- 由 JS 動態填入動爻變出之干支六親 -->
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- 斷卦輔助摘要（伏神說明、空亡與動爻提示） -->
+                <div id="board-analysis-notes" class="bg-paperCard border border-bamboo rounded-2xl p-3 text-[11px] sm:text-xs text-inkLight space-y-1 shadow-2xs w-full leading-relaxed">
+                    <!-- 由 JS 動態填入 -->
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- 頁尾 -->
+    <footer class="w-full border-t border-bamboo bg-paperDark/50 py-3 px-4 mt-4 text-center text-[11px] sm:text-xs text-inkLight">
+        <p>易經納甲裝卦系統・依循京房納甲、《增刪卜易》及唯心聖教鬼谷子心法編製</p>
+    </footer>
+
+    <!-- 複製成功提示 Toast -->
+    <div id="toast-notification" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-ink text-paper px-5 py-2.5 rounded-full text-xs sm:text-sm font-medium shadow-xl opacity-0 pointer-events-none transition-opacity duration-300 z-50 whitespace-nowrap">
+        已複製純文字排盤結果至剪貼簿！
+    </div>
+
+    <!-- 唯心聖教／裝卦口訣速查彈窗 -->
+    <div id="formula-modal" class="fixed inset-0 bg-ink/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-paper border-2 border-bamboo rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="bg-ink text-paper px-4 sm:px-5 py-3 flex items-center justify-between">
+                <h3 class="font-calligraphy font-bold text-sm sm:text-lg tracking-wider">📖 唯心聖教・京房納甲裝卦口訣速查</h3>
+                <button onclick="toggleFormulaModal()" class="text-stone-300 hover:text-white text-lg px-2 leading-none">✕</button>
+            </div>
+            <div class="p-4 sm:p-5 overflow-y-auto space-y-3.5 text-xs sm:text-sm text-ink leading-relaxed">
+                <div class="bg-paperCard p-3.5 rounded-xl border border-bamboo">
+                    <h4 class="font-calligraphy font-bold text-cinnabar mb-1.5">一、京房納甲歌（內外卦天干地支）</h4>
+                    <ul class="space-y-1 text-xs">
+                        <li><span class="font-bold text-ink">乾金甲子外壬午</span>：內甲子水、甲寅木、甲辰土；外壬午火、壬申金、壬戌土</li>
+                        <li><span class="font-bold text-ink">坤土乙未外癸丑</span>：內乙未土、乙巳火、乙卯木；外癸丑土、癸亥水、癸酉金</li>
+                        <li><span class="font-bold text-ink">震木庚子外庚午</span>：內庚子水、庚寅木、庚辰土；外庚午火、庚申金、庚戌土</li>
+                        <li><span class="font-bold text-ink">巽木辛丑外辛未</span>：內辛丑土、辛亥水、辛酉金；外辛未土、辛巳火、辛卯木</li>
+                        <li><span class="font-bold text-ink">坎水戊寅外戊申</span>：內戊寅木、戊辰土、戊午火；外戊申金、戊戌土、戊子水</li>
+                        <li><span class="font-bold text-ink">離火己卯外己酉</span>：內己卯木、己丑土、己亥水；外己酉金、己未土、己巳火</li>
+                        <li><span class="font-bold text-ink">艮土丙辰外丙戌</span>：內丙辰土、丙午火、丙申金；外丙戌土、丙子水、丙寅木</li>
+                        <li><span class="font-bold text-ink">兌金丁巳外丁亥</span>：內丁巳火、丁卯木、丁丑土；外丁亥水、丁酉金、丁未土</li>
+                    </ul>
+                </div>
+
+                <div class="bg-paperCard p-3.5 rounded-xl border border-bamboo">
+                    <h4 class="font-calligraphy font-bold text-cinnabar mb-1.5">二、安世應口訣（八宮世應）</h4>
+                    <p class="font-calligraphy font-bold text-ink">「八卦之首世六當，以下初爻輪上揚；遊魂八卦四爻立，歸魂八卦三爻詳。」</p>
+                    <p class="text-xs text-inkLight mt-1">世爻與應爻永遠相隔兩爻（初世四應、二世五應、三世上應、四世初應、五世二應、上世三應）。</p>
+                </div>
+
+                <div class="bg-paperCard p-3.5 rounded-xl border border-bamboo">
+                    <h4 class="font-calligraphy font-bold text-cinnabar mb-1.5">三、起六獸（六神）訣（依日干由初爻往上排）</h4>
+                    <p class="font-calligraphy font-bold text-ink">「甲乙起青龍，丙丁起朱雀，戊日起勾陳，己日起螣蛇，庚辛起白虎，壬癸起玄武。」</p>
+                    <p class="text-xs text-inkLight mt-1">手寫簡稱順序：青（青龍）→ 朱（朱雀）→ 勾（勾陳）→ 呈（螣蛇）→ 白（白虎）→ 玄（玄武）。</p>
+                </div>
+
+                <div class="bg-paperCard p-3.5 rounded-xl border border-bamboo">
+                    <h4 class="font-calligraphy font-bold text-cinnabar mb-1.5">四、六十甲子旬空（空亡）速查</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
+                        <div>• <span class="font-bold">甲子旬</span>（甲子至癸酉）：<span class="text-cinnabar font-bold">戌、亥空</span></div>
+                        <div>• <span class="font-bold">甲戌旬</span>（甲戌至癸未）：<span class="text-cinnabar font-bold">申、酉空</span></div>
+                        <div>• <span class="font-bold">甲申旬</span>（甲申至癸巳）：<span class="text-cinnabar font-bold">午、未空</span></div>
+                        <div>• <span class="font-bold">甲午旬</span>（甲午至癸卯）：<span class="text-cinnabar font-bold">辰、巳空</span></div>
+                        <div>• <span class="font-bold">甲辰旬</span>（甲辰至癸丑）：<span class="text-cinnabar font-bold">寅、卯空</span></div>
+                        <div>• <span class="font-bold">甲寅旬</span>（甲寅至癸亥）：<span class="text-cinnabar font-bold">子、丑空</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         核心易經納甲演算法、萬年曆節氣推算與互動邏輯
+         ========================================================================= -->
+    <script>
+        // -------------------------------------------------------------------------
+        // 1. 基礎干支、五行、六親、六獸常數定義
+        // -------------------------------------------------------------------------
+        const HEAVENLY_STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+        const EARTHLY_BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+        const LINE_TITLES = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'];
+
+        // 地支對應五行
+        const BRANCH_ELEMENT = {
+            '子': '水', '亥': '水',
+            '寅': '木', '卯': '木',
+            '巳': '火', '午': '火',
+            '申': '金', '酉': '金',
+            '辰': '土', '戌': '土', '丑': '土', '未': '土'
+        };
+
+        // 五行生剋六親表：ELEMENT_REL[我(本卦宮五行)][爻支五行]
+        const ELEMENT_REL = {
+            '金': { '金': '兄弟', '木': '妻財', '水': '子孫', '火': '官鬼', '土': '父母' },
+            '木': { '木': '兄弟', '土': '妻財', '火': '子孫', '金': '官鬼', '水': '父母' },
+            '水': { '水': '兄弟', '火': '妻財', '木': '子孫', '土': '官鬼', '金': '父母' },
+            '火': { '火': '兄弟', '金': '妻財', '土': '子孫', '水': '官鬼', '木': '父母' },
+            '土': { '土': '兄弟', '水': '妻財', '金': '子孫', '木': '官鬼', '火': '父母' }
+        };
+
+        // 六親單字簡稱
+        const REL_SHORT = {
+            '父母': '父',
+            '兄弟': '兄',
+            '子孫': '子',
+            '妻財': '財',
+            '官鬼': '官'
+        };
+
+        // 六獸順序（手寫簡稱與全稱）
+        const BEASTS_SHORT = ['青', '朱', '勾', '呈', '白', '玄'];
+        const BEASTS_FULL  = ['青龍', '朱雀', '勾陳', '螣蛇', '白虎', '玄武'];
+
+        // 日干起六獸起始索引
+        const STEM_BEAST_START = {
+            '甲': 0, '乙': 0, // 青龍
+            '丙': 1, '丁': 1, // 朱雀
+            '戊': 2,          // 勾陳
+            '己': 3,          // 螣蛇
+            '庚': 4, '辛': 4, // 白虎
+            '壬': 5, '癸': 5  // 玄武
+        };
+
+        const STEM_BEAST_DESC = {
+            '甲': '甲乙日起青龍', '乙': '甲乙日起青龍',
+            '丙': '丙丁日起朱雀', '丁': '丙丁日起朱雀',
+            '戊': '戊日起勾陳',
+            '己': '己日起螣蛇',
+            '庚': '庚辛日起白虎', '辛': '庚辛日起白虎',
+            '壬': '壬癸日起玄武', '癸': '壬癸日起玄武'
+        };
+
+        // -------------------------------------------------------------------------
+        // 2. 八經卦京房納甲資料庫（二進位由初爻至上爻：'1'=陽, '0'=陰）
+        // -------------------------------------------------------------------------
+        const TRIGRAMS = {
+            '111': {
+                name: '乾', nature: '天', element: '金',
+                innerStem: '甲', innerBranches: ['子', '寅', '辰'],
+                outerStem: '壬', outerBranches: ['午', '申', '戌']
+            },
+            '000': {
+                name: '坤', nature: '地', element: '土',
+                innerStem: '乙', innerBranches: ['未', '巳', '卯'],
+                outerStem: '癸', outerBranches: ['丑', '亥', '酉']
+            },
+            '100': {
+                name: '震', nature: '雷', element: '木',
+                innerStem: '庚', innerBranches: ['子', '寅', '辰'],
+                outerStem: '庚', outerBranches: ['午', '申', '戌']
+            },
+            '011': {
+                name: '巽', nature: '風', element: '木',
+                innerStem: '辛', innerBranches: ['丑', '亥', '酉'],
+                outerStem: '辛', outerBranches: ['未', '巳', '卯']
+            },
+            '010': {
+                name: '坎', nature: '水', element: '水',
+                innerStem: '戊', innerBranches: ['寅', '辰', '午'],
+                outerStem: '戊', outerBranches: ['申', '戌', '子']
+            },
+            '101': {
+                name: '離', nature: '火', element: '火',
+                innerStem: '己', innerBranches: ['卯', '丑', '亥'],
+                outerStem: '己', outerBranches: ['酉', '未', '巳']
+            },
+            '001': {
+                name: '艮', nature: '山', element: '土',
+                innerStem: '丙', innerBranches: ['辰', '午', '申'],
+                outerStem: '丙', outerBranches: ['戌', '子', '寅']
+            },
+            '110': {
+                name: '兌', nature: '澤', element: '金',
+                innerStem: '丁', innerBranches: ['巳', '卯', '丑'],
+                outerStem: '丁', outerBranches: ['亥', '酉', '未']
+            }
+        };
+
+        // 八宮首卦（八純卦）用於推算伏神
+        const PALACE_ROOT = {
+            '乾': { code: '111111', name: '乾為天', element: '金' },
+            '兌': { code: '110110', name: '兌為澤', element: '金' },
+            '離': { code: '101101', name: '離為火', element: '火' },
+            '震': { code: '100100', name: '震為雷', element: '木' },
+            '巽': { code: '011011', name: '巽為風', element: '木' },
+            '坎': { code: '010010', name: '坎為水', element: '水' },
+            '艮': { code: '001001', name: '艮為山', element: '土' },
+            '坤': { code: '000000', name: '坤為地', element: '土' }
+        };
+
+        // -------------------------------------------------------------------------
+        // 3. 完整 64 卦資料庫（Key 為初爻至上爻 6 位元二進位字串）
+        // -------------------------------------------------------------------------
+        const HEXAGRAMS_64 = {
+            // 乾宮八卦（屬金）
+            '111111': { name: '乾為天',   palace: '乾', rank: '本宮卦', shi: 6, ying: 3 },
+            '011111': { name: '天風姤',   palace: '乾', rank: '一世卦', shi: 1, ying: 4 },
+            '001111': { name: '天山遁',   palace: '乾', rank: '二世卦', shi: 2, ying: 5 },
+            '000111': { name: '天地否',   palace: '乾', rank: '三世卦', shi: 3, ying: 6 },
+            '000011': { name: '風地觀',   palace: '乾', rank: '四世卦', shi: 4, ying: 1 },
+            '000001': { name: '山地剝',   palace: '乾', rank: '五世卦', shi: 5, ying: 2 },
+            '000101': { name: '火地晉',   palace: '乾', rank: '遊魂卦', shi: 4, ying: 1 },
+            '111101': { name: '火天大有', palace: '乾', rank: '歸魂卦', shi: 3, ying: 6 },
+
+            // 兌宮八卦（屬金）
+            '110110': { name: '兌為澤',   palace: '兌', rank: '本宮卦', shi: 6, ying: 3 },
+            '010110': { name: '澤水困',   palace: '兌', rank: '一世卦', shi: 1, ying: 4 },
+            '000110': { name: '澤地萃',   palace: '兌', rank: '二世卦', shi: 2, ying: 5 },
+            '001110': { name: '澤山咸',   palace: '兌', rank: '三世卦', shi: 3, ying: 6 },
+            '001010': { name: '水山蹇',   palace: '兌', rank: '四世卦', shi: 4, ying: 1 },
+            '001000': { name: '地山謙',   palace: '兌', rank: '五世卦', shi: 5, ying: 2 },
+            '001100': { name: '雷山小過', palace: '兌', rank: '遊魂卦', shi: 4, ying: 1 },
+            '110100': { name: '雷澤歸妹', palace: '兌', rank: '歸魂卦', shi: 3, ying: 6 },
+
+            // 離宮八卦（屬火）
+            '101101': { name: '離為火',   palace: '離', rank: '本宮卦', shi: 6, ying: 3 },
+            '001101': { name: '火山旅',   palace: '離', rank: '一世卦', shi: 1, ying: 4 },
+            '011101': { name: '火風鼎',   palace: '離', rank: '二世卦', shi: 2, ying: 5 },
+            '010101': { name: '火水未濟', palace: '離', rank: '三世卦', shi: 3, ying: 6 },
+            '010001': { name: '山水蒙',   palace: '離', rank: '四世卦', shi: 4, ying: 1 },
+            '010011': { name: '風水渙',   palace: '離', rank: '五世卦', shi: 5, ying: 2 },
+            '010111': { name: '天水訟',   palace: '離', rank: '遊魂卦', shi: 4, ying: 1 },
+            '101111': { name: '天火同人', palace: '離', rank: '歸魂卦', shi: 3, ying: 6 },
+
+            // 震宮八卦（屬木）
+            '100100': { name: '震為雷',   palace: '震', rank: '本宮卦', shi: 6, ying: 3 },
+            '000100': { name: '雷地豫',   palace: '震', rank: '一世卦', shi: 1, ying: 4 },
+            '010100': { name: '雷水解',   palace: '震', rank: '二世卦', shi: 2, ying: 5 },
+            '011100': { name: '雷風恆',   palace: '震', rank: '三世卦', shi: 3, ying: 6 },
+            '011000': { name: '地風升',   palace: '震', rank: '四世卦', shi: 4, ying: 1 },
+            '011010': { name: '水風井',   palace: '震', rank: '五世卦', shi: 5, ying: 2 },
+            '011110': { name: '澤風大過', palace: '震', rank: '遊魂卦', shi: 4, ying: 1 },
+            '100110': { name: '澤雷隨',   palace: '震', rank: '歸魂卦', shi: 3, ying: 6 },
+
+            // 巽宮八卦（屬木）
+            '011011': { name: '巽為風',   palace: '巽', rank: '本宮卦', shi: 6, ying: 3 },
+            '111011': { name: '風天小畜', palace: '巽', rank: '一世卦', shi: 1, ying: 4 },
+            '101011': { name: '風火家人', palace: '巽', rank: '二世卦', shi: 2, ying: 5 },
+            '100011': { name: '風雷益',   palace: '巽', rank: '三世卦', shi: 3, ying: 6 },
+            '100111': { name: '天雷无妄', palace: '巽', rank: '四世卦', shi: 4, ying: 1 },
+            '100101': { name: '火雷噬嗑', palace: '巽', rank: '五世卦', shi: 5, ying: 2 },
+            '100001': { name: '山雷頤',   palace: '巽', rank: '遊魂卦', shi: 4, ying: 1 },
+            '011001': { name: '山風蠱',   palace: '巽', rank: '歸魂卦', shi: 3, ying: 6 },
+
+            // 坎宮八卦（屬水）
+            '010010': { name: '坎為水',   palace: '坎', rank: '本宮卦', shi: 6, ying: 3 },
+            '110010': { name: '水澤節',   palace: '坎', rank: '一世卦', shi: 1, ying: 4 },
+            '100010': { name: '水雷屯',   palace: '坎', rank: '二世卦', shi: 2, ying: 5 },
+            '101010': { name: '水火既濟', palace: '坎', rank: '三世卦', shi: 3, ying: 6 },
+            '101110': { name: '澤火革',   palace: '坎', rank: '四世卦', shi: 4, ying: 1 },
+            '101100': { name: '雷火豐',   palace: '坎', rank: '五世卦', shi: 5, ying: 2 },
+            '101000': { name: '地火明夷', palace: '坎', rank: '遊魂卦', shi: 4, ying: 1 },
+            '010000': { name: '地水師',   palace: '坎', rank: '歸魂卦', shi: 3, ying: 6 },
+
+            // 艮宮八卦（屬土）
+            '001001': { name: '艮為山',   palace: '艮', rank: '本宮卦', shi: 6, ying: 3 },
+            '101001': { name: '山火賁',   palace: '艮', rank: '一世卦', shi: 1, ying: 4 },
+            '111001': { name: '山天大畜', palace: '艮', rank: '二世卦', shi: 2, ying: 5 },
+            '110001': { name: '山澤損',   palace: '艮', rank: '三世卦', shi: 3, ying: 6 },
+            '110101': { name: '火澤睽',   palace: '艮', rank: '四世卦', shi: 4, ying: 1 },
+            '110111': { name: '天澤履',   palace: '艮', rank: '五世卦', shi: 5, ying: 2 },
+            '110011': { name: '風澤中孚', palace: '艮', rank: '遊魂卦', shi: 4, ying: 1 },
+            '001011': { name: '風山漸',   palace: '艮', rank: '歸魂卦', shi: 3, ying: 6 },
+
+            // 坤宮八卦（屬土）
+            '000000': { name: '坤為地',   palace: '坤', rank: '本宮卦', shi: 6, ying: 3 },
+            '100000': { name: '地雷復',   palace: '坤', rank: '一世卦', shi: 1, ying: 4 },
+            '110000': { name: '地澤臨',   palace: '坤', rank: '二世卦', shi: 2, ying: 5 },
+            '111000': { name: '地天泰',   palace: '坤', rank: '三世卦', shi: 3, ying: 6 },
+            '111100': { name: '雷天大壯', palace: '坤', rank: '四世卦', shi: 4, ying: 1 },
+            '111110': { name: '澤天夬',   palace: '坤', rank: '五世卦', shi: 5, ying: 2 },
+            '111010': { name: '水天需',   palace: '坤', rank: '遊魂卦', shi: 4, ying: 1 },
+            '000010': { name: '水地比',   palace: '坤', rank: '歸魂卦', shi: 3, ying: 6 }
+        };
+
+        // -------------------------------------------------------------------------
+        // 4. 應用程式全域狀態
+        // -------------------------------------------------------------------------
+        const appState = {
+            // lines[0..5] 為初爻至上爻：7=少陽, 8=少陰, 9=老陽(動), 6=老陰(動)
+            lines: [7, 7, 7, 7, 7, 7],
+            yearGZ: '丙午',
+            monthStem: '己',
+            monthBranch: '亥',
+            dayStem: '庚',
+            dayBranch: '寅',
+            showFullStem: true,     // true=完整納甲(干支五行), false=手寫簡盤(僅地支)
+            showFullBeast: false,   // false=手寫簡稱(白/玄/青/朱/勾/呈), true=全稱
+            showChangedDetail: true // true=於卦名下方顯示動變細目
+        };
+
+        // -------------------------------------------------------------------------
+        // 5. 內建精準萬年曆干支、二十四節氣月建與旬空推算引擎（完全離線獨立運行）
+        // -------------------------------------------------------------------------
+        function computeSolarGanZhi(dateObj) {
+            const year = dateObj.getFullYear();
+            const month = dateObj.getMonth() + 1;
+            const day = dateObj.getDate();
+
+            // 1. 精準計算日干支（以公曆 1900-01-31 甲辰日 index 40 為基準）
+            const baseUtc = Date.UTC(1900, 0, 31);
+            const targetUtc = Date.UTC(year, month - 1, day);
+            const diffDays = Math.floor((targetUtc - baseUtc) / 86400000);
+            const dayGzIdx = ((40 + diffDays) % 60 + 60) % 60;
+            const dayStem = HEAVENLY_STEMS[dayGzIdx % 10];
+            const dayBranch = EARTHLY_BRANCHES[dayGzIdx % 12];
+
+            // 2. 計算二十四節氣（十二節交節日期）
+            const sTermInfo = [
+                0, 21208, 42467, 63836, 85337, 107014,
+                128867, 150921, 173149, 195551, 218072, 240693,
+                263343, 285989, 308563, 331033, 353350, 375494,
+                397447, 419210, 440795, 462224, 483532, 504758
+            ];
+            function getSolarTermDay(y, n) {
+                const offDate = new Date(Date.UTC(1900, 0, 6, 2, 5) + 31556925974.7 * (y - 1900) + sTermInfo[n] * 60000);
+                return { month: offDate.getUTCMonth() + 1, day: offDate.getUTCDate() };
+            }
+
+            const jieIndices = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22];
+            const jieBranches = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0];
+
+            const lichun = getSolarTermDay(year, 2);
+            const isBeforeLichun = (month < lichun.month) || (month === lichun.month && day < lichun.day);
+            const ganZhiYear = isBeforeLichun ? year - 1 : year;
+
+            const yearGzIdx = ((ganZhiYear - 1984) % 60 + 60) % 60;
+            const yearStemIdx = yearGzIdx % 10;
+            const yearBranchIdx = yearGzIdx % 12;
+            const yearGZ = HEAVENLY_STEMS[yearStemIdx] + EARTHLY_BRANCHES[yearBranchIdx];
+
+            let monthBranchIdx = 1;
+            const xiaohan = getSolarTermDay(year, 0);
+            if (month === 1 && day < xiaohan.day) {
+                monthBranchIdx = 0;
+            } else {
+                for (let k = 0; k < jieIndices.length; k++) {
+                    const st = getSolarTermDay(year, jieIndices[k]);
+                    if (month > st.month || (month === st.month && day >= st.day)) {
+                        monthBranchIdx = jieBranches[k];
+                    }
+                }
+            }
+
+            // 五虎遁年起月訣
+            const yinMonthStemMap = [2, 4, 6, 8, 0, 2, 4, 6, 8, 0];
+            const startStemIdx = yinMonthStemMap[yearStemIdx];
+            const offsetFromYin = (monthBranchIdx - 2 + 12) % 12;
+            const monthStemIdx = (startStemIdx + offsetFromYin) % 10;
+
+            return {
+                yearGZ,
+                monthStem: HEAVENLY_STEMS[monthStemIdx],
+                monthBranch: EARTHLY_BRANCHES[monthBranchIdx],
+                dayStem,
+                dayBranch
+            };
+        }
+
+        /**
+         * 計算日辰旬空（空亡二地支）
+         */
+        function getVoidBranches(dayStem, dayBranch) {
+            const sIdx = HEAVENLY_STEMS.indexOf(dayStem);
+            const bIdx = EARTHLY_BRANCHES.indexOf(dayBranch);
+            const xunStartBranchIdx = (bIdx - sIdx + 12) % 12;
+            const void1 = EARTHLY_BRANCHES[(xunStartBranchIdx + 10) % 12];
+            const void2 = EARTHLY_BRANCHES[(xunStartBranchIdx + 11) % 12];
+            return [void1, void2];
+        }
+
+        // -------------------------------------------------------------------------
+        // 6. 核心京房納甲、八宮世應、六親、六獸、伏神與變爻推算引擎
+        // -------------------------------------------------------------------------
+        function calculateFullHexagram(lines) {
+            const mainCode = lines.map(v => (v === 7 || v === 9) ? '1' : '0').join('');
+            const mainHex = HEXAGRAMS_64[mainCode];
+            const palaceName = mainHex.palace;
+            const palaceElement = PALACE_ROOT[palaceName].element;
+
+            const hasMoving = lines.some(v => v === 6 || v === 9);
+            const changedCode = lines.map(v => {
+                if (v === 9) return '0';
+                if (v === 6) return '1';
+                return (v === 7) ? '1' : '0';
+            }).join('');
+            const changedHex = HEXAGRAMS_64[changedCode];
+
+            function buildNaJiaLines(codeStr, baseElement) {
+                const lowerTri = TRIGRAMS[codeStr.slice(0, 3)];
+                const upperTri = TRIGRAMS[codeStr.slice(3, 6)];
+                const arr = [];
+
+                for (let i = 0; i < 6; i++) {
+                    const isUpper = i >= 3;
+                    const tri = isUpper ? upperTri : lowerTri;
+                    const localIdx = i % 3;
+                    const stem = isUpper ? tri.outerStem : tri.innerStem;
+                    const branch = isUpper ? tri.outerBranches[localIdx] : tri.innerBranches[localIdx];
+                    const elem = BRANCH_ELEMENT[branch];
+                    const relFull = ELEMENT_REL[baseElement][elem];
+                    const relShort = REL_SHORT[relFull];
+                    const isYang = codeStr[i] === '1';
+
+                    arr.push({
+                        index: i,
+                        title: LINE_TITLES[i],
+                        isYang,
+                        stem,
+                        branch,
+                        element: elem,
+                        relFull,
+                        relShort
+                    });
+                }
+                return arr;
+            }
+
+            const mainLines = buildNaJiaLines(mainCode, palaceElement);
+            const changedLines = buildNaJiaLines(changedCode, palaceElement);
+
+            // 推算伏神
+            const allRels = ['父母', '兄弟', '子孫', '妻財', '官鬼'];
+            const existingRels = new Set(mainLines.map(l => l.relFull));
+            const missingRels = allRels.filter(r => !existingRels.has(r));
+
+            const rootCode = PALACE_ROOT[palaceName].code;
+            const rootLines = buildNaJiaLines(rootCode, palaceElement);
+            const voidBranches = getVoidBranches(appState.dayStem, appState.dayBranch);
+            const beastStart = STEM_BEAST_START[appState.dayStem];
+
+            mainLines.forEach((line, idx) => {
+                const rLine = rootLines[idx];
+                if (missingRels.includes(rLine.relFull)) {
+                    line.fuShen = {
+                        stem: rLine.stem,
+                        branch: rLine.branch,
+                        element: rLine.element,
+                        relFull: rLine.relFull,
+                        relShort: rLine.relShort,
+                        isVoid: voidBranches.includes(rLine.branch)
+                    };
+                } else {
+                    line.fuShen = null;
+                }
+
+                line.rawVal = lines[idx];
+                line.isMoving = (lines[idx] === 6 || lines[idx] === 9);
+                line.beastShort = BEASTS_SHORT[(beastStart + idx) % 6];
+                line.beastFull = BEASTS_FULL[(beastStart + idx) % 6];
+                line.isShi = (mainHex.shi === idx + 1);
+                line.isYing = (mainHex.ying === idx + 1);
+                line.isVoid = voidBranches.includes(line.branch);
+
+                line.changed = changedLines[idx];
+                line.changed.isVoid = voidBranches.includes(changedLines[idx].branch);
+            });
+
+            return {
+                mainCode,
+                mainHex,
+                palaceElement,
+                changedCode,
+                changedHex,
+                hasMoving,
+                missingRels,
+                voidBranches,
+                lines: mainLines
+            };
+        }
+
+        // -------------------------------------------------------------------------
+        // 7. SVG 傳統手寫感爻象繪圖引擎（正中圓/叉、線下正中標世/應）
+        // -------------------------------------------------------------------------
+        function renderControlYaoSvg(isYang, isMoving) {
+            const inkColor = '#1F1C18';
+            const cinnabarColor = '#B8332A';
+            let lineSvg = '';
+            if (isYang) {
+                lineSvg = `<line x1="4" y1="11" x2="76" y2="11" stroke="${inkColor}" stroke-width="3.4" stroke-linecap="round" />`;
+            } else {
+                lineSvg = `
+                    <line x1="4" y1="11" x2="32" y2="11" stroke="${inkColor}" stroke-width="3.4" stroke-linecap="round" />
+                    <line x1="48" y1="11" x2="76" y2="11" stroke="${inkColor}" stroke-width="3.4" stroke-linecap="round" />
+                `;
+            }
+
+            let markSvg = '';
+            if (isMoving) {
+                if (isYang) {
+                    markSvg = `<circle cx="40" cy="11" r="6.2" fill="#FCF9F2" stroke="${cinnabarColor}" stroke-width="2.4" />`;
+                } else {
+                    markSvg = `
+                        <line x1="34.5" y1="5.5" x2="45.5" y2="16.5" stroke="${cinnabarColor}" stroke-width="2.4" stroke-linecap="round" />
+                        <line x1="45.5" y1="5.5" x2="34.5" y2="16.5" stroke="${cinnabarColor}" stroke-width="2.4" stroke-linecap="round" />
+                    `;
+                }
+            }
+
+            return `
+                <svg viewBox="0 0 80 22" class="w-14 sm:w-16 h-5 overflow-visible select-none" aria-hidden="true">
+                    ${lineSvg}
+                    ${markSvg}
+                </svg>
+            `;
+        }
+
+        /**
+         * 繪製右側宣紙卦盤主畫布的「手寫感 SVG 爻象」（含正中圓/叉，以及線下正中「世／應」標記）
+         */
+        function renderCalligraphyYaoSvg(lineObj) {
+            const { isYang, isMoving, isShi, isYing } = lineObj;
+            const inkColor = '#1F1C18';
+            const cinnabarColor = '#B8332A';
+            const indigoColor = '#2B547E';
+
+            const hasMarker = isShi || isYing;
+            const vbHeight = hasMarker ? 40 : 24;
+            const lineY = 11;
+
+            let barSvg = '';
+            if (isYang) {
+                barSvg = `<path d="M 6 ${lineY} Q 65 ${lineY - 0.8}, 124 ${lineY}" stroke="${inkColor}" stroke-width="3.3" stroke-linecap="round" fill="none" />`;
+            } else {
+                barSvg = `
+                    <path d="M 6 ${lineY} Q 29 ${lineY - 0.6}, 52 ${lineY}" stroke="${inkColor}" stroke-width="3.3" stroke-linecap="round" fill="none" />
+                    <path d="M 78 ${lineY} Q 101 ${lineY - 0.6}, 124 ${lineY}" stroke="${inkColor}" stroke-width="3.3" stroke-linecap="round" fill="none" />
+                `;
+            }
+
+            let movingSvg = '';
+            if (isMoving) {
+                if (isYang) {
+                    movingSvg = `<circle cx="65" cy="${lineY}" r="7.2" fill="#FBF8F1" stroke="${cinnabarColor}" stroke-width="2.5" />`;
+                } else {
+                    movingSvg = `
+                        <line x1="58.5" y1="${lineY - 6.2}" x2="71.5" y2="${lineY + 6.2}" stroke="${cinnabarColor}" stroke-width="2.5" stroke-linecap="round" />
+                        <line x1="71.5" y1="${lineY - 6.2}" x2="58.5" y2="${lineY + 6.2}" stroke="${cinnabarColor}" stroke-width="2.5" stroke-linecap="round" />
+                    `;
+                }
+            }
+
+            let shiYingSvg = '';
+            if (isShi) {
+                shiYingSvg = `
+                    <text x="65" y="35" text-anchor="middle" fill="${cinnabarColor}" 
+                        font-family="'Noto Serif TC', 'Kaiti', serif" font-weight="900" font-size="15.5">世</text>
+                `;
+            } else if (isYing) {
+                shiYingSvg = `
+                    <text x="65" y="35" text-anchor="middle" fill="${indigoColor}" 
+                        font-family="'Noto Serif TC', 'Kaiti', serif" font-weight="900" font-size="15.5">應</text>
+                `;
+            }
+
+            return `
+                <svg viewBox="0 0 130 ${vbHeight}" class="w-full max-w-[144px] mx-auto block overflow-visible select-none">
+                    ${barSvg}
+                    ${movingSvg}
+                    ${shiYingSvg}
+                </svg>
+            `;
+        }
+
+        // -------------------------------------------------------------------------
+        // 8. 初始化下拉選單與「模式 B：選上下卦＋動爻」互動控制列
+        // -------------------------------------------------------------------------
+        function initSelectOptions() {
+            const dayStemSel = document.getElementById('select-day-stem');
+            HEAVENLY_STEMS.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = s;
+                dayStemSel.appendChild(opt);
+            });
+
+            const dayBranchSel = document.getElementById('select-day-branch');
+            const monthBranchSel = document.getElementById('select-month-branch');
+            EARTHLY_BRANCHES.forEach(b => {
+                const opt1 = document.createElement('option');
+                opt1.value = b;
+                opt1.textContent = b;
+                dayBranchSel.appendChild(opt1);
+
+                const opt2 = document.createElement('option');
+                opt2.value = b;
+                opt2.textContent = b;
+                monthBranchSel.appendChild(opt2);
+            });
+
+            const trigramOrder = ['111', '110', '101', '100', '011', '010', '001', '000'];
+            const upperSel = document.getElementById('select-upper-gua');
+            const lowerSel = document.getElementById('select-lower-gua');
+            trigramOrder.forEach(code => {
+                const t = TRIGRAMS[code];
+                const label = `${t.name}（${t.nature}・屬${t.element}）`;
+                const o1 = document.createElement('option');
+                o1.value = code;
+                o1.textContent = label;
+                upperSel.appendChild(o1);
+
+                const o2 = document.createElement('option');
+                o2.value = code;
+                o2.textContent = label;
+                lowerSel.appendChild(o2);
+            });
+        }
+
+        // 當上下卦下拉選單改變時，保留原有動爻狀態並套用新卦象
+        function applyUpperLowerGua() {
+            const lowerCode = document.getElementById('select-lower-gua').value;
+            const upperCode = document.getElementById('select-upper-gua').value;
+            const fullBits = (lowerCode + upperCode).split('');
+
+            for (let i = 0; i < 6; i++) {
+                const isYang = fullBits[i] === '1';
+                const wasMoving = (appState.lines[i] === 6 || appState.lines[i] === 9);
+                appState.lines[i] = isYang ? (wasMoving ? 9 : 7) : (wasMoving ? 6 : 8);
+            }
+            renderControlYaoList();
+            renderBoard();
+        }
+
+        // 同步上下卦下拉選單與 appState.lines
+        function syncUpperLowerSelects() {
+            const lowerCode = appState.lines.slice(0, 3).map(v => (v === 7 || v === 9) ? '1' : '0').join('');
+            const upperCode = appState.lines.slice(3, 6).map(v => (v === 7 || v === 9) ? '1' : '0').join('');
+            document.getElementById('select-lower-gua').value = lowerCode;
+            document.getElementById('select-upper-gua').value = upperCode;
+        }
+
+        // 渲染左側「六爻動靜設定」互動列（由上爻5至初爻0排列）
+        function renderControlYaoList() {
+            const container = document.getElementById('interactive-yao-controls');
+            container.innerHTML = '';
+
+            for (let i = 5; i >= 0; i--) {
+                const val = appState.lines[i];
+                const isYang = (val === 7 || val === 9);
+                const isMoving = (val === 6 || val === 9);
+
+                const row = document.createElement('div');
+                row.className = `flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl border transition ${
+                    isMoving ? 'bg-cinnabarSoft/65 border-cinnabar/45' : 'bg-paperCard border-bamboo/80'
+                }`;
+
+                const statusLabel = isYang
+                    ? (isMoving ? '老陽（動○）' : '少陽（靜）')
+                    : (isMoving ? '老陰（動✕）' : '少陰（靜）');
+
+                row.innerHTML = `
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <span class="font-calligraphy font-bold text-xs sm:text-sm text-ink">${LINE_TITLES[i]}</span>
+                        <span class="text-[10px] text-inkLight">${i >= 3 ? '外' : '內'}</span>
+                    </div>
+
+                    <!-- 點擊爻象可直接翻轉該爻陰陽（並自動同步上下經卦下拉選單） -->
+                    <button onclick="toggleLineYinYang(${i})" title="點擊翻轉陰陽"
+                        class="px-2 py-0.5 rounded-lg hover:bg-paperDark/60 transition flex items-center justify-center">
+                        ${renderControlYaoSvg(isYang, isMoving)}
+                    </button>
+
+                    <!-- 點擊切換「靜爻 / 動爻」 -->
+                    <button onclick="toggleLineMoving(${i})"
+                        class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition active:scale-95 shrink-0 ${
+                            isMoving
+                                ? 'bg-cinnabar text-paper shadow-2xs'
+                                : 'bg-paperDark/80 text-inkLight hover:text-ink border border-bamboo'
+                        }">
+                        ${statusLabel}
+                    </button>
+                `;
+                container.appendChild(row);
+            }
+        }
+
+        // 切換單爻動靜
+        function toggleLineMoving(idx) {
+            const cur = appState.lines[idx];
+            if (cur === 7) appState.lines[idx] = 9;
+            else if (cur === 9) appState.lines[idx] = 7;
+            else if (cur === 8) appState.lines[idx] = 6;
+            else if (cur === 6) appState.lines[idx] = 8;
+
+            renderControlYaoList();
+            renderBoard();
+        }
+
+        // 翻轉單爻陰陽並同步上下卦選單
+        function toggleLineYinYang(idx) {
+            const cur = appState.lines[idx];
+            if (cur === 7) appState.lines[idx] = 8;
+            else if (cur === 8) appState.lines[idx] = 7;
+            else if (cur === 9) appState.lines[idx] = 6;
+            else if (cur === 6) appState.lines[idx] = 9;
+
+            syncUpperLowerSelects();
+            renderControlYaoList();
+            renderBoard();
+        }
+
+        function clearAllMoving() {
+            appState.lines = appState.lines.map(v => (v === 9 ? 7 : (v === 6 ? 8 : v)));
+            renderControlYaoList();
+            renderBoard();
+        }
+
+        // -------------------------------------------------------------------------
+        // 9. 時間干支控制與「天澤履」範例載入
+        // -------------------------------------------------------------------------
+        function formatDatetimeLocal(date) {
+            const pad = n => String(n).padStart(2, '0');
+            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        }
+
+        function setNowTime() {
+            const now = new Date();
+            document.getElementById('input-datetime').value = formatDatetimeLocal(now);
+            onDateTimeChange();
+            showToast('已重設為今日此刻時間與節氣干支');
+        }
+
+        function onDateTimeChange() {
+            const val = document.getElementById('input-datetime').value;
+            if (!val) return;
+            const dt = new Date(val);
+            if (isNaN(dt.getTime())) return;
+
+            const gz = computeSolarGanZhi(dt);
+            appState.yearGZ = gz.yearGZ;
+            appState.monthStem = gz.monthStem;
+            appState.monthBranch = gz.monthBranch;
+            appState.dayStem = gz.dayStem;
+            appState.dayBranch = gz.dayBranch;
+
+            syncGanZhiControls();
+            renderBoard();
+        }
+
+        function onManualDayChange() {
+            appState.dayStem = document.getElementById('select-day-stem').value;
+            appState.dayBranch = document.getElementById('select-day-branch').value;
+            syncGanZhiControls();
+            renderBoard();
+        }
+
+        function onManualBranchChange() {
+            appState.monthBranch = document.getElementById('select-month-branch').value;
+            syncGanZhiControls();
+            renderBoard();
+        }
+
+        function syncGanZhiControls() {
+            document.getElementById('disp-year-gz').textContent = `${appState.yearGZ}年`;
+            document.getElementById('disp-month-stem').textContent = appState.monthStem;
+            document.getElementById('select-month-branch').value = appState.monthBranch;
+            document.getElementById('select-day-stem').value = appState.dayStem;
+            document.getElementById('select-day-branch').value = appState.dayBranch;
+
+            const voids = getVoidBranches(appState.dayStem, appState.dayBranch);
+            document.getElementById('disp-void').textContent = `${voids.join('')}空`;
+            document.getElementById('disp-beast-rule').textContent = STEM_BEAST_DESC[appState.dayStem];
+        }
+
+        // 載入附圖經典範例：「江俊達運勢 / 己亥月 庚寅日 / 天澤履 2爻陽動 ↳ 天雷无妄」
+        function loadSampleCase() {
+            document.getElementById('input-topic').value = '江俊達運勢';
+            appState.yearGZ = '己亥';
+            appState.monthStem = '己';
+            appState.monthBranch = '亥';
+            appState.dayStem = '庚';
+            appState.dayBranch = '寅';
+            // 天澤履（下兌110 + 上乾111），二爻陽動（index 1 = 9）
+            appState.lines = [7, 9, 7, 7, 7, 7];
+
+            syncGanZhiControls();
+            syncUpperLowerSelects();
+            renderControlYaoList();
+            renderBoard();
+            showToast('已載入範例：天澤履（二爻陽動）己亥月 庚寅日');
+        }
+
+        function toggleStemDisplay() {
+            appState.showFullStem = !appState.showFullStem;
+            document.getElementById('toggle-stem-label').textContent = appState.showFullStem
+                ? '納甲：干支五行'
+                : '納甲：手寫地支';
+            renderBoard();
+        }
+
+        function toggleBeastFull() {
+            appState.showFullBeast = !appState.showFullBeast;
+            document.getElementById('toggle-beast-label').textContent = appState.showFullBeast
+                ? '六獸：全稱'
+                : '六獸：簡稱';
+            renderBoard();
+        }
+
+        function toggleChangedDetail() {
+            appState.showChangedDetail = !appState.showChangedDetail;
+            document.getElementById('toggle-changed-label').textContent = appState.showChangedDetail
+                ? '變爻細目：顯示'
+                : '變爻細目：隱藏';
+            renderBoard();
+        }
+
+        // -------------------------------------------------------------------------
+        // 10. 渲染右側「書院直式手寫宣紙卦盤」（零橫向捲動自適應佈局）
+        // -------------------------------------------------------------------------
+        let lastComputedBoard = null;
+
+        function renderBoard() {
+            const data = calculateFullHexagram(appState.lines);
+            lastComputedBoard = data;
+
+            // 1. 更新右側直排月日、空亡與占卜事項
+            const topicText = document.getElementById('input-topic').value.trim() || '占問吉凶';
+            document.getElementById('board-vertical-topic').textContent = topicText;
+            document.getElementById('board-vertical-gz').textContent = `${appState.monthStem}${appState.monthBranch}月 ${appState.dayStem}${appState.dayBranch}日`;
+            document.getElementById('board-vertical-void').textContent = `空亡：${data.voidBranches.join('')}`;
+
+            // 2. 更新中央六爻手寫排盤列（由上爻5至初爻0）
+            const rowsContainer = document.getElementById('calligraphy-board-rows');
+            rowsContainer.innerHTML = '';
+
+            for (let i = 5; i >= 0; i--) {
+                const l = data.lines[i];
+
+                const rowDiv = document.createElement('div');
+                rowDiv.className = `yao-board-grid py-1 sm:py-1.5 rounded-xl transition ${
+                    l.isMoving ? 'bg-cinnabarSoft/40' : 'hover:bg-paperDark/35'
+                }`;
+
+                // (1) 伏神欄
+                let fuShenHtml = `<span class="text-bamboo select-none">·</span>`;
+                if (l.fuShen) {
+                    const fuText = appState.showFullStem
+                        ? `${l.fuShen.stem}${l.fuShen.branch}${l.fuShen.relShort}`
+                        : `${l.fuShen.branch}${l.fuShen.relShort}`;
+                    const fuVoidTag = l.fuShen.isVoid ? `<span class="text-[9px] text-cinnabar font-bold">空</span>` : '';
+                    fuShenHtml = `
+                        <span class="inline-flex items-center justify-center px-1 py-0.5 rounded bg-jade/10 text-jade font-calligraphy font-bold board-text-sub leading-none" title="伏神：${l.fuShen.relFull} ${l.fuShen.stem}${l.fuShen.branch}${l.fuShen.element}">
+                            ${fuText}${fuVoidTag}
+                        </span>
+                    `;
+                }
+
+                // (2) 本卦六親欄（兄、子、父、官、財）
+                const relHtml = `
+                    <span class="font-calligraphy font-bold board-text-main text-ink leading-none">
+                        ${l.relShort}
+                    </span>
+                `;
+
+                // (3) 納甲天干＋地支欄（支援完整「甲辰土」或手寫簡盤「辰」，逢空亡醒目紅標）
+                const gzText = appState.showFullStem
+                    ? `${l.stem}${l.branch}${l.element}`
+                    : `${l.branch}`;
+                const voidBadge = l.isVoid
+                    ? `<span class="ml-0.5 px-0.5 rounded bg-cinnabar text-paper font-sans font-bold text-[9px] leading-tight">空</span>`
+                    : '';
+                const ganZhiHtml = `
+                    <div class="flex items-center justify-center font-calligraphy font-bold ${appState.showFullStem ? 'board-text-sub sm:text-base' : 'board-text-main sm:text-xl'} ${l.isVoid ? 'text-cinnabar' : 'text-ink'} leading-none">
+                        <span>${gzText}</span>
+                        ${voidBadge}
+                    </div>
+                `;
+
+                // (4) 手寫感 SVG 爻象圖（含正中圓/叉，以及正下方「世／應」）
+                const yaoSvgHtml = `
+                    <div class="px-0.5 sm:px-1 flex items-center justify-center">
+                        ${renderCalligraphyYaoSvg(l)}
+                    </div>
+                `;
+
+                // (5) 六獸欄（青、朱、勾、呈、白、玄）
+                const beastText = appState.showFullBeast ? l.beastFull : l.beastShort;
+                const beastHtml = `
+                    <span class="font-calligraphy font-bold ${appState.showFullBeast ? 'board-text-sub' : 'board-text-main'} text-ink leading-none">
+                        ${beastText}
+                    </span>
+                `;
+
+                rowDiv.innerHTML = `
+                    <div class="text-center">${fuShenHtml}</div>
+                    <div class="text-center">${relHtml}</div>
+                    <div class="text-center">${ganZhiHtml}</div>
+                    <div>${yaoSvgHtml}</div>
+                    <div class="text-center">${beastHtml}</div>
+                `;
+                rowsContainer.appendChild(rowDiv);
+            }
+
+            // 3. 更新下方本卦名與變卦名
+            document.getElementById('board-main-hex-name').textContent = data.mainHex.name;
+            document.getElementById('board-palace-badge').textContent = `${data.mainHex.palace}宮屬${data.palaceElement}・${data.mainHex.rank}`;
+
+            const changedWrap = document.getElementById('board-changed-hex-wrap');
+            const changedStrip = document.getElementById('board-changed-lines-strip');
+            const movingList = data.lines.filter(l => l.isMoving).reverse(); // 由上至下顯示動爻
+
+            if (data.hasMoving) {
+                changedWrap.classList.remove('hidden');
+                document.getElementById('board-changed-hex-name').textContent = data.changedHex.name;
+                document.getElementById('board-changed-palace-badge').textContent = `${data.changedHex.palace}宮・${data.changedHex.rank}`;
+
+                if (appState.showChangedDetail) {
+                    changedStrip.classList.remove('hidden');
+                    changedStrip.innerHTML = movingList.map(l => {
+                        const c = l.changed;
+                        const voidStr = c.isVoid ? '空' : '';
+                        return `
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-cinnabarSoft/90 border border-cinnabar/35 text-cinnabar font-calligraphy font-bold text-[11px] sm:text-xs">
+                                <span>${l.title}${l.relShort}${l.stem}${l.branch}</span>
+                                <span>→</span>
+                                <span>${c.relShort}${c.stem}${c.branch}${c.element}${voidStr ? `(${voidStr})` : ''}</span>
+                            </span>
+                        `;
+                    }).join('');
+                } else {
+                    changedStrip.classList.add('hidden');
+                }
+            } else {
+                changedWrap.classList.add('hidden');
+                changedStrip.classList.add('hidden');
+            }
+
+            // 4. 更新底部斷卦輔助提示
+            const notesDiv = document.getElementById('board-analysis-notes');
+            const fuNote = data.missingRels.length > 0
+                ? `• <strong>伏神提示</strong>：本卦缺「<span class="text-jade font-bold">${data.missingRels.join('、')}</span>」，已自動從${data.mainHex.palace}宮首卦（${PALACE_ROOT[data.mainHex.palace].name}）取出伏神標示於對應爻位左側。`
+                : `• <strong>六親提示</strong>：本卦「父母、兄弟、子孫、妻財、官鬼」五類六親俱全，無須借伏神。`;
+
+            const moveNote = movingList.length > 0
+                ? `• <strong>動變提示</strong>：共 ${movingList.length} 爻發動（${movingList.map(l => `${l.title}${l.relFull}${l.stem}${l.branch}${l.element} 化 ${l.changed.relFull}${l.changed.stem}${l.changed.branch}${l.changed.element}`).join('；')}）。`
+                : `• <strong>靜卦提示</strong>：六爻皆靜，以世爻（${LINE_TITLES[data.mainHex.shi - 1]}）與應爻（${LINE_TITLES[data.mainHex.ying - 1]}）旺衰生剋為主。`;
+
+            notesDiv.innerHTML = `<div>${fuNote}</div><div>${moveNote}</div>`;
+        }
+
+        // -------------------------------------------------------------------------
+        // 11. 一鍵複製純文字排盤（使用 document.execCommand('copy') 確保相容性）
+        // -------------------------------------------------------------------------
+        function copyPlainTextBoard() {
+            if (!lastComputedBoard) return;
+            const d = lastComputedBoard;
+            const topic = document.getElementById('input-topic').value.trim() || '占問吉凶';
+            const dtVal = document.getElementById('input-datetime').value.replace('T', ' ');
+
+            const out = [];
+            out.push(`【易經納甲裝卦排盤 — 唯心聖教・鬼谷子心法】`);
+            out.push(`占問事項：${topic}`);
+            if (dtVal) out.push(`占問時間：${dtVal}`);
+            out.push(`四柱干支：${appState.yearGZ}年  ${appState.monthStem}${appState.monthBranch}月  ${appState.dayStem}${appState.dayBranch}日（旬空：${d.voidBranches.join('')}空）`);
+            out.push(`本　　卦：${d.mainHex.name}（${d.mainHex.palace}宮屬${d.palaceElement}・${d.mainHex.rank}）`);
+            out.push(`之　　卦：${d.hasMoving ? `${d.changedHex.name}（${d.changedHex.palace}宮・${d.changedHex.rank}）` : '無（靜卦）'}`);
+            out.push(`============================================================`);
+            out.push(`六獸  伏神        六親  納甲干支   爻象      世應 空亡  變爻`);
+
+            for (let i = 5; i >= 0; i--) {
+                const l = d.lines[i];
+                const c = l.changed;
+                const fuStr = l.fuShen
+                    ? `${l.fuShen.relShort} ${l.fuShen.stem}${l.fuShen.branch}${l.fuShen.element}`.padEnd(8, ' ')
+                    : '　　　　　';
+                const yaoSym = l.isYang
+                    ? (l.isMoving ? '━━○━━' : '━━━━━')
+                    : (l.isMoving ? '━━✕━━' : '━━ ━━');
+                const syStr = l.isShi ? '世' : (l.isYing ? '應' : '　');
+                const voidStr = l.isVoid ? '空' : '　';
+                const chgStr = l.isMoving
+                    ? `→ ${c.isYang ? '━━━━━' : '━━ ━━'} ${c.relShort} ${c.stem}${c.branch}${c.element}${c.isVoid ? '(空)' : ''}`
+                    : '';
+
+                out.push(`${l.beastFull}  ${fuStr}  ${l.relShort}　  ${l.stem}${l.branch}${l.element}   ${yaoSym}   ${syStr}   ${voidStr}  ${chgStr}`);
+            }
+            out.push(`============================================================`);
+
+            const textArea = document.createElement('textarea');
+            textArea.value = out.join('\n');
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-9999px';
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('已複製純文字排盤結果至剪貼簿！');
+            } catch (e) {
+                showToast('複製失敗，請手動選取內容');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function showToast(msg) {
+            const el = document.getElementById('toast-notification');
+            el.textContent = msg;
+            el.classList.remove('opacity-0');
+            setTimeout(() => el.classList.add('opacity-0'), 2400);
+        }
+
+        function toggleFormulaModal() {
+            document.getElementById('formula-modal').classList.toggle('hidden');
+        }
+
+        // -------------------------------------------------------------------------
+        // 12. 頁面初始化（預設帶入今日此刻時間＋模式 B 上下卦選單）
+        // -------------------------------------------------------------------------
+        window.addEventListener('DOMContentLoaded', () => {
+            initSelectOptions();
+            const now = new Date();
+            document.getElementById('input-datetime').value = formatDatetimeLocal(now);
+            onDateTimeChange();
+            syncUpperLowerSelects();
+            renderControlYaoList();
+        });
+    </script>
+</body>
+</html>
